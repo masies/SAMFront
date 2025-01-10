@@ -10,10 +10,11 @@ import {
   Row,
   Col,
 } from 'antd';
+import './SAMPredictor.css'; 
 
 const { Title, Text } = Typography;
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://0.0.0.0:5001';
 
 
 const SAMPredictor = () => {
@@ -31,6 +32,7 @@ const SAMPredictor = () => {
   };
 
   const onFinish = async (values) => {
+    
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/predict`, {
@@ -176,31 +178,47 @@ const SAMPredictor = () => {
               fontSize: '16px'
             }}
           >
+            
             Calcola Rischio
+            
           </Button>
         </Form.Item>
       </Form>
 
       {prediction !== null && (
-        <Result
-          status={prediction > 50 ? "warning" : "success"}
-          title={
-            <Title level={3} style={{ marginBottom: '8px' }}>
-              Risultato Predizione SAM
-            </Title>
-          }
-          subTitle={
-            <Text style={{ fontSize: '18px' }}>
-              Il rischio previsto è del <Text strong>{prediction.toFixed(1)}%</Text>
-            </Text>
-          }
-          style={{
-            marginTop: '24px',
-            padding: '24px',
-            background: '#fafafa',
-            borderRadius: '8px'
-          }}
-        />
+
+            <Result
+              status={prediction > 50 ? "warning" : "success"}
+              title={
+                <div>
+                  <img 
+                  className='spinning-image'
+                  src="/azz.png" 
+                  alt="Loading" 
+                  style={{scale:"140%", padding: '10px' }}
+                />
+                <Title level={3} style={{ marginBottom: '8px' }}>
+                  Risultato Predizione SAM
+                </Title>
+                </div>
+                
+              }
+              subTitle={
+                <Text style={{ fontSize: '18px' }}>
+                  Il rischio previsto è del <Text strong>{prediction.toFixed(1)}%</Text>
+                </Text>
+              }
+              style={{
+                marginTop: '24px',
+                padding: '24px',
+                background: '#fafafa',
+                borderRadius: '8px'
+              }}
+            />
+            
+
+          
+        
       )}
     </Card>
   );
