@@ -10,3 +10,17 @@
     transform-origin: 50% 50%; /* Rotate around the center */
   }
   
+
+/* Flip animation without smoothness */
+@keyframes flip {
+    0% { transform: rotateY(0deg); }
+    50% { transform: rotateY(180deg); }
+    100% { transform: rotateY(360deg); }
+  }
+  
+  /* Apply the flip animation to the image */
+  .flipping-image {
+    animation: flip .4s steps(1) infinite; /* 'steps(1)' makes the flip instant without smoothness */
+
+    transform-origin: center; /* Ensure the flip occurs around the center */
+  }

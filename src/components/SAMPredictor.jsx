@@ -63,6 +63,19 @@ const SAMPredictor = () => {
         borderRadius: '8px'
       }}
     >
+      <Row style={{paddingBottom:"30px"}}>
+        <Col span={24}>
+          <div>
+            Systolic Anterior Motion (SAM) is a phenomenon where the heart’s mitral valve leaflet moves abnormally during systole, potentially obstructing blood flow and leading to heart issues. 
+          </div>
+          <div>
+            SAM is often associated with hypertrophic cardiomyopathy (HCM), a condition that thickens the heart muscle. 
+          </div>
+          <div>
+            Our predictor helps assess the risk of SAM by analyzing key cardiac measurements, aiding in early identification and management.
+          </div>
+        </Col>
+      </Row>
       <Form
         form={form}
         layout="vertical"
