@@ -13,6 +13,9 @@ import {
 
 const { Title, Text } = Typography;
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://samback.onrender.com/';
+
+
 const SAMPredictor = () => {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -30,14 +33,13 @@ const SAMPredictor = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/predict', {
+      const response = await fetch(`${API_URL}/api/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(values),
       });
-      
       const data = await response.json();
       setPrediction(data.prediction);
     } catch (error) {
