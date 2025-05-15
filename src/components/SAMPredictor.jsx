@@ -335,9 +335,7 @@ const SAMPredictor = () => {
                   validator: (_, value) =>
                     value && value.length > 0
                       ? Promise.resolve()
-                      : Promise.reject(
-                          new Error("Seleziona almeno un'opzione")
-                        ),
+                      : Promise.reject(new Error("Pick at least one Scallop")),
                 },
               ]}
             >
@@ -385,7 +383,7 @@ const SAMPredictor = () => {
               fontSize: "16px",
             }}
           >
-            Calcola Rischio
+            <b>Predict SAM Risk</b>
           </Button>
         </Form.Item>
       </Form>
