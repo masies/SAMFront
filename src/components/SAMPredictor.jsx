@@ -93,7 +93,17 @@ const SAMPredictor = () => {
             <Form.Item
               name="Pre_EF"
               label={<Text strong>Left Ventricle Ejection Fraction (%)</Text>}
-              rules={[{ required: true, message: "Required Field" }]}
+              rules={[
+                { required: true, message: "Required Field" },
+                {
+                  validator: (_, value) =>
+                    value >= 40 && value <= 70
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Value must be between 40 and 70%")
+                        ),
+                },
+              ]}
             >
               <Input
                 type="number"
@@ -108,7 +118,17 @@ const SAMPredictor = () => {
             <Form.Item
               name="A2_mm"
               label={<Text strong>Anterior Leaflet Length (mm)</Text>}
-              rules={[{ required: true, message: "Required Field" }]}
+              rules={[
+                { required: true, message: "Required Field" },
+                {
+                  validator: (_, value) =>
+                    value >= 14 && value <= 40
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Value must be between 14 and 40 mm")
+                        ),
+                },
+              ]}
             >
               <Input
                 type="number"
@@ -123,7 +143,17 @@ const SAMPredictor = () => {
             <Form.Item
               name="P2_mm"
               label={<Text strong>Posterior Leaflet Length (mm)</Text>}
-              rules={[{ required: true, message: "Required Field" }]}
+              rules={[
+                { required: true, message: "Required Field" },
+                {
+                  validator: (_, value) =>
+                    value >= 8 && value <= 35
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Value must be between 8 and 35 mm")
+                        ),
+                },
+              ]}
             >
               <Input
                 type="number"
@@ -153,7 +183,17 @@ const SAMPredictor = () => {
             <Form.Item
               name="SIV-Coapt_mm"
               label={<Text strong>C-Sept Distance (mm)</Text>}
-              rules={[{ required: true, message: "Required Field" }]}
+              rules={[
+                { required: true, message: "Required Field" },
+                {
+                  validator: (_, value) =>
+                    value >= 15 && value <= 50
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Value must be between 15 and 50 mm")
+                        ),
+                },
+              ]}
             >
               <Input
                 type="number"
@@ -172,8 +212,8 @@ const SAMPredictor = () => {
                 {
                   validator: (_, value) => {
                     const num = Number(value);
-                    if (isNaN(num) || num < 0 || num > 360) {
-                      return Promise.reject("Value outside range (0–360°)");
+                    if (isNaN(num) || num < 85 || num > 155) {
+                      return Promise.reject("Value outside range (85–155°)");
                     }
                     return Promise.resolve();
                   },
@@ -194,7 +234,17 @@ const SAMPredictor = () => {
             <Form.Item
               name="setto_basale"
               label={<Text strong>Basal Septum (mm)</Text>}
-              rules={[{ required: true, message: "Required Field" }]}
+              rules={[
+                { required: true, message: "Required Field" },
+                {
+                  validator: (_, value) =>
+                    value >= 8 && value <= 20
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Value must be between 8 and 20 mm")
+                        ),
+                },
+              ]}
             >
               <Input
                 type="number"
@@ -211,7 +261,17 @@ const SAMPredictor = () => {
               label={
                 <Text strong>Left Ventricle End Diastolic Diameter (mm)</Text>
               }
-              rules={[{ required: true, message: "Required Field" }]}
+              rules={[
+                { required: true, message: "Required Field" },
+                {
+                  validator: (_, value) =>
+                    value >= 35 && value <= 75
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Value must be between 35 and 75 mm")
+                        ),
+                },
+              ]}
             >
               <Input
                 type="number"
