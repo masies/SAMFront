@@ -137,14 +137,14 @@ const SAMPredictor = () => {
           <Col xs={24} md={6}>
             <Form.Item
               name="ratio_lam_lpm"
-              label={<Text strong>Leaflet’s RATIO”</Text>}
+              label={<Text strong>Leaflet’s Ratio</Text>}
             >
               <Input
                 type="number"
                 size="large"
                 step="0.01"
                 disabled
-                placeholder="Calcolato automaticamente"
+                placeholder="Computed automatically"
               />
             </Form.Item>
           </Col>
@@ -267,7 +267,20 @@ const SAMPredictor = () => {
           </Col>
 
           <Col xs={24} md={6}>
-            <Form.Item name="scallop_involved" label="Scallop Involved">
+            <Form.Item
+              name="scallop_involved"
+              label="Scallop Involved"
+              rules={[
+                {
+                  validator: (_, value) =>
+                    value && value.length > 0
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Seleziona almeno un'opzione")
+                        ),
+                },
+              ]}
+            >
               <Checkbox.Group>
                 <Row gutter={[8, 8]}>
                   {["A1", "A2", "A3", "P1", "P2", "P3"].map((label) => (
