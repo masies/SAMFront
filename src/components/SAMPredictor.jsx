@@ -33,7 +33,6 @@ const SAMPredictor = () => {
   };
 
   const onFinish = async (values) => {
-    console.log("Form values:", values);
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/predict`, {
