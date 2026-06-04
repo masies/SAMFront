@@ -114,7 +114,7 @@ const SAMPredictor = () => {
           </Title>
         </div>
         <p className="predictor-intro__copy">
-          Enter the echocardiographic and lesion characteristics to estimate
+          Enter the echocardiographic characteristics to estimate
           systolic anterior motion risk after mitral valve repair.
         </p>
       </div>
@@ -130,16 +130,16 @@ const SAMPredictor = () => {
           <Row gutter={[16, 4]}>
             <Col xs={24} sm={12} lg={8} xl={6}>
               <Form.Item
-                name="dim_anello"
-                label={<Text strong>Mitral Annulus Diameter (mm)</Text>}
+                name="Pre_EF"
+                label={<Text strong>Left Ventricle Ejection Fraction (%)</Text>}
                 rules={[
                   { required: true, message: "Required Field" },
                   {
                     validator: (_, value) =>
-                      value >= 20 && value <= 50
+                      value >= 40 && value <= 70
                         ? Promise.resolve()
                         : Promise.reject(
-                            new Error("Value must be between 20 and 50 mm")
+                            new Error("Value must be between 40 and 70%")
                           ),
                   },
                 ]}
