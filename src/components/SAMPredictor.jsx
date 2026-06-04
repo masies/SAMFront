@@ -206,7 +206,7 @@ const SAMPredictor = () => {
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
               name="rapporto_lam_lpm"
-              label={<Text strong>Leaflet’s Ratio</Text>}
+              label={<Text strong>Leaflet Ratio</Text>}
             >
               <Input
                 type="number"
