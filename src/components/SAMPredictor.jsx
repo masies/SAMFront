@@ -6,116 +6,156 @@ import {
   Button,
   Card,
   Typography,
-  Result,
   Row,
   Col,
   Select,
   Checkbox,
+  Alert,
+  Progress,
 } from "antd";
 import "./SAMPredictor.css";
 
 const { Title, Text } = Typography;
 
-const API_URL = import.meta.env.VITE_API_URL || "http://0.0.0.0:5001";
+const API_URL = import.meta.env.VITE_API_URL || "";
+
+const getRiskProfile = (value) => {
+  if (value >= 50) {
+    return {
+      level: "high",
+      title: "High SAM risk",
+      color: "#b42318",
+      message:
+        "Prioritize a focused review of mitral geometry and operative strategy before proceeding.",
+    };
+  }
+
+  if (value >= 30) {
+    return {
+      level: "medium",
+      title: "Medium SAM risk",
+      color: "#b7791f",
+      message:
+        "Review measurements and surgical plan with attention to modifiable anatomical factors.",
+    };
+  }
+
+  return {
+    level: "low",
+    title: "Low SAM risk",
+    color: "#067647",
+    message:
+      "Risk estimate is limited based on the submitted measurements.",
+  };
+};
 
 const SAMPredictor = () => {
   const [prediction, setPrediction] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const riskProfile = prediction !== null ? getRiskProfile(prediction) : null;
 
-  // Watch A2 and P2 values to calculate ratio
-  const handleValuesChange = (changedValues, allValues) => {
-    const { A2_mm, P2_mm } = allValues;
-    if (A2_mm && P2_mm && P2_mm !== 0) {
-      const ratio = (A2_mm / P2_mm).toFixed(2);
-      form.setFieldValue("ratio_lam_lpm", ratio);
+  const handleValuesChange = (_, allValues) => {
+    const a2 = Number(allValues.lunghezza_a2);
+    const p2 = Number(allValues.lunghezza_p2);
+
+    if (a2 > 0 && p2 > 0) {
+      form.setFieldValue("rapporto_lam_lpm", (a2 / p2).toFixed(2));
+    } else {
+      form.setFieldValue("rapporto_lam_lpm", undefined);
     }
   };
 
   const onFinish = async (values) => {
     setLoading(true);
+    setError(null);
+    setPrediction(null);
+
     try {
+      const payload = {
+        ...values,
+        rapporto_lam_lpm:
+          values.rapporto_lam_lpm ||
+          (Number(values.lunghezza_a2) / Number(values.lunghezza_p2)).toFixed(2),
+      };
+
       const response = await fetch(`${API_URL}/api/predict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
+
+      if (!response.ok || data.error) {
+        throw new Error(
+          data.detail || data.message || data.error || "Prediction failed"
+        );
+      }
+
       setPrediction(data.prediction);
     } catch (error) {
       console.error("Error:", error);
+      setError(error.message || "Prediction failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card
-      bordered={false}
-      style={{
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-        borderRadius: "8px",
-      }}
-    >
-      <Row style={{ paddingBottom: "30px" }}>
-        <Col span={24}>
-          <div>
-            Introducing the <b>SAM Risk Calculator</b>, an AI-powered tool
-            designed to{" "}
-            <b>
-              support clinicians in evaluating patients with primary mitral
-              regurgitation
-            </b>
-            . Developed and validated on a retrospective cohort from the{" "}
-            <b>San Raffaele Hospital </b> in Milan, our software harnesses
-            advanced machine learning algorithms trained exclusively on cases of
-            non-rheumatic, non-infective mitral insufficiency without associated
-            septal or aortic valve pathology. By focusing on patients with
-            isolated posterior ring involvement, the SAM Risk Calculator
-            delivers precise, data-driven risk stratification, helping you
-            tailor management strategies and optimize outcomes. Experience fast,
-            evidence-based insights at your fingertips.
-          </div>
-        </Col>
-      </Row>
+    <Card bordered={false} className="predictor-card">
+      <div className="predictor-intro">
+        <div>
+          <Text className="predictor-intro__eyebrow">SAM Risk Calculator</Text>
+          <Title level={2} className="predictor-intro__title">
+            Patient measurements
+          </Title>
+        </div>
+        <p className="predictor-intro__copy">
+          Enter the echocardiographic and lesion characteristics to estimate
+          systolic anterior motion risk after mitral valve repair.
+        </p>
+      </div>
+
       <Form
         form={form}
         layout="vertical"
         onFinish={onFinish}
         onValuesChange={handleValuesChange}
         requiredMark={false}
+        className="predictor-form"
       >
-        <Row gutter={[32, 0]}>
-          <Col xs={24} md={6}>
-            <Form.Item
-              name="Pre_EF"
-              label={<Text strong>Left Ventricle Ejection Fraction (%)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                {
-                  validator: (_, value) =>
-                    value >= 40 && value <= 70
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error("Value must be between 40 and 70%")
-                        ),
-                },
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+          <Row gutter={[16, 4]}>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="dim_anello"
+                label={<Text strong>Mitral Annulus Diameter (mm)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  {
+                    validator: (_, value) =>
+                      value >= 20 && value <= 50
+                        ? Promise.resolve()
+                        : Promise.reject(
+                            new Error("Value must be between 20 and 50 mm")
+                          ),
+                  },
+                ]}
+              >
+                <Input
+                  type="number"
+                  size="large"
+                  step="1"
+                  placeholder="Insert Value"
+                />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="A2_mm"
+              name="lunghezza_a2"
               label={<Text strong>Anterior Leaflet Length (mm)</Text>}
               rules={[
                 { required: true, message: "Required Field" },
@@ -138,9 +178,9 @@ const SAMPredictor = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="P2_mm"
+              name="lunghezza_p2"
               label={<Text strong>Posterior Leaflet Length (mm)</Text>}
               rules={[
                 { required: true, message: "Required Field" },
@@ -163,9 +203,9 @@ const SAMPredictor = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="ratio_lam_lpm"
+              name="rapporto_lam_lpm"
               label={<Text strong>Leaflet’s Ratio</Text>}
             >
               <Input
@@ -178,9 +218,9 @@ const SAMPredictor = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="SIV-Coapt_mm"
+              name="distanza_siv_coapt"
               label={<Text strong>C-Sept Distance (mm)</Text>}
               rules={[
                 { required: true, message: "Required Field" },
@@ -202,7 +242,7 @@ const SAMPredictor = () => {
               />
             </Form.Item>
           </Col>
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
               name="angolo_ma"
               label={<Text strong>M-A Angle (°)</Text>}
@@ -229,7 +269,7 @@ const SAMPredictor = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
               name="setto_basale"
               label={<Text strong>Basal Septum (mm)</Text>}
@@ -254,7 +294,7 @@ const SAMPredictor = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
               name="lv_edd"
               label={
@@ -281,7 +321,7 @@ const SAMPredictor = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
               name="Eziologia_MIX_FED"
               label={<Text strong>Etiology</Text>}
@@ -298,7 +338,7 @@ const SAMPredictor = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
               name="Prolapse"
               label={<Text strong>Type of Lesion</Text>}
@@ -311,7 +351,7 @@ const SAMPredictor = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
               name="Leaflet_involved"
               label={<Text strong>Leaflet Involved</Text>}
@@ -325,7 +365,7 @@ const SAMPredictor = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
               name="scallop_involved"
               label="Scallop Involved"
@@ -350,72 +390,95 @@ const SAMPredictor = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={8} lg={8} xl={6}>
             <Form.Item name="Any_cleft" valuePropName="checked">
               <Checkbox>Any Cleft</Checkbox>
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={8} lg={8} xl={6}>
             <Form.Item name="Any_leaflet_calcification" valuePropName="checked">
               <Checkbox>Any Leaflet Calcification</Checkbox>
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={6}>
+          <Col xs={24} sm={8} lg={8} xl={6}>
             <Form.Item name="Any_annular_calcification" valuePropName="checked">
               <Checkbox>Any Annular Calcification</Checkbox>
             </Form.Item>
           </Col>
-        </Row>
+          </Row>
 
-        <Form.Item style={{ marginTop: "24px", textAlign: "center" }}>
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={loading}
-            size="large"
-            style={{
-              backgroundColor: "#000",
-              width: "200px",
-              height: "45px",
-              fontSize: "16px",
-            }}
-          >
-            <b>Predict SAM Risk</b>
-          </Button>
-        </Form.Item>
+          <Form.Item className="predictor-actions">
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              size="large"
+              className="predictor-submit"
+            >
+              Predict SAM Risk
+            </Button>
+          </Form.Item>
       </Form>
 
-      {prediction !== null && (
-        <Result
-          status={prediction > 50 ? "warning" : "success"}
-          title={
+      {error && (
+        <Alert
+          type="error"
+          message="Prediction error"
+          description={error}
+          showIcon
+          className="predictor-alert"
+        />
+      )}
+
+      {riskProfile && (
+        <section
+          className={`risk-result risk-result--${riskProfile.level}`}
+          aria-live="polite"
+        >
+          <div className="risk-result__header">
             <div>
-              <img
-                className="spinning-image"
-                src="/azz.png"
-                alt="Loading"
-                style={{ scale: "140%", padding: "10px" }}
-              />
-              <Title level={3} style={{ marginBottom: "8px" }}>
-                Risultato Predizione SAM
+              <Text className="risk-result__eyebrow">SAM risk estimate</Text>
+              <Title level={3} className="risk-result__title">
+                {riskProfile.title}
               </Title>
             </div>
-          }
-          subTitle={
-            <Text style={{ fontSize: "18px" }}>
-              Il rischio previsto è del{" "}
-              <Text strong>{prediction.toFixed(1)}%</Text>
-            </Text>
-          }
-          style={{
-            marginTop: "24px",
-            padding: "24px",
-            background: "#fafafa",
-            borderRadius: "8px",
-          }}
-        />
+            <div className="risk-result__score">
+              {prediction.toFixed(1)}
+              <span>%</span>
+            </div>
+          </div>
+
+          <Progress
+            percent={Math.round(prediction)}
+            showInfo={false}
+            strokeColor={riskProfile.color}
+            trailColor="#edf0f2"
+            className="risk-result__progress"
+          />
+
+          <div className="risk-scale" aria-label="Risk scale">
+            {["low", "medium", "high"].map((level) => (
+              <div
+                key={level}
+                className={`risk-scale__item ${
+                  riskProfile.level === level ? "risk-scale__item--active" : ""
+                }`}
+              >
+                {level}
+              </div>
+            ))}
+          </div>
+
+          <Text className="risk-result__message">{riskProfile.message}</Text>
+
+          <div className="risk-result__thresholds">
+            <span>Low &lt;30%</span>
+            <span>Medium 30-49%</span>
+            <span>High &gt;=50%</span>
+          </div>
+        </section>
       )}
     </Card>
   );
