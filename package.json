@@ -11,7 +11,7 @@
     "preview": "vite preview"
   },
   "engines": {
-    "node": ">=18"
+    "node": "22.x"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.2",
