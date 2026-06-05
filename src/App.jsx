@@ -11,11 +11,8 @@ function App() {
     <Layout className="app-shell">
       <Header className="app-header">
         <div className="app-header__inner">
-          <span className="app-header__mark" aria-hidden="true">
-            SAM
-          </span>
           <Title level={2} className="app-header__title">
-            SAM Risk Predictor
+            SAM Risk Calculator
           </Title>
         </div>
       </Header>
@@ -53,7 +50,7 @@ function App() {
 
       <Footer className="app-footer">
         <Typography.Text className="app-footer__text">
-          © 2025 SAM Risk Predictor. All rights reserved.
+          © 2026 SAM Risk Predictor. All rights reserved.
         </Typography.Text>
         <div className="app-footer__logos" aria-label="Institutional logos">
           <img
