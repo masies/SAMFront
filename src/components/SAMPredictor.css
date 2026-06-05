@@ -48,6 +48,26 @@
   margin-bottom: 11px;
 }
 
+.predictor-section {
+  margin-top: 18px;
+}
+
+.predictor-section:first-of-type {
+  margin-top: 0;
+}
+
+.predictor-section + .predictor-section {
+  padding-top: 18px;
+  border-top: 1px solid #e7ebf0;
+}
+
+.predictor-section__title.ant-typography {
+  margin: 0 0 12px;
+  color: #101828;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
 .predictor-form .ant-form-item-label {
   padding-bottom: 5px;
 }

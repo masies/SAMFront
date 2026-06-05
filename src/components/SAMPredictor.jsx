@@ -258,466 +258,409 @@ const SAMPredictor = () => {
         requiredMark={false}
         className="predictor-form"
       >
-        <Row gutter={[16, 4]}>
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Pre_EF"
-              label={<Text strong>Left Ventricle Ejection Fraction (%)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                {
-                  validator: (_, value) =>
-                    value >= 35 && value <= 88
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error("Value must be between 35 and 88%")
-                        ),
-                },
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Lunghezza A2_mm"
-              label={<Text strong>Anterior Leaflet Length (mm)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                {
-                  validator: (_, value) =>
-                    value >= 3.5 && value <= 49
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error("Value must be between 3.5 and 49 mm")
-                        ),
-                },
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Lunghezza P2_mm"
-              label={<Text strong>Posterior Leaflet Length (mm)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                {
-                  validator: (_, value) =>
-                    value >= 0 && value <= 35
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error("Value must be between 0 and 35 mm")
-                        ),
-                },
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Rapporto LAM/LPM"
-              label={<Text strong>Leaflet Ratio</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                optionalRangeRule(0, 3.75),
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="0.01"
-                placeholder="Computed automatically or insert value"
-              />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Distanza SIV-Coapt_mm"
-              label={<Text strong>C-Sept Distance (mm)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                {
-                  validator: (_, value) =>
-                    value >= 6 && value <= 51.5
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error("Value must be between 6 and 51.5 mm")
-                        ),
-                },
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Angolo M-A_gradi"
-              label={<Text strong>M-A Angle (°)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                {
-                  validator: (_, value) => {
-                    const num = Number(value);
-                    if (isNaN(num) || num < 65 || num > 170) {
-                      return Promise.reject("Value outside range (65-170°)");
-                    }
-                    return Promise.resolve();
+        <section className="predictor-section">
+          <Title level={3} className="predictor-section__title">
+            Parameters to assess post repair SAM risk:
+          </Title>
+          <Row gutter={[16, 4]}>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Pre_EF"
+                label={<Text strong>Left Ventricle Ejection Fraction (%)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  {
+                    validator: (_, value) =>
+                      value >= 35 && value <= 88
+                        ? Promise.resolve()
+                        : Promise.reject(
+                            new Error("Value must be between 35 and 88%")
+                          ),
                   },
-                },
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-                addonAfter="°"
-              />
-            </Form.Item>
-          </Col>
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Setto basale_mm"
-              label={<Text strong>Basal Septum (mm)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                {
-                  validator: (_, value) =>
-                    value >= 0 && value <= 24.4
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error("Value must be between 0 and 24.4 mm")
-                        ),
-                },
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="LV EDD"
+                label={
+                  <Text strong>Left Ventricle End Diastolic Diameter (mm)</Text>
+                }
+                rules={[
+                  { required: true, message: "Required Field" },
+                  {
+                    validator: (_, value) =>
+                      value >= 18 && value <= 88
+                        ? Promise.resolve()
+                        : Promise.reject(
+                            new Error("Value must be between 18 and 88 mm")
+                          ),
+                  },
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="LV EDD"
-              label={
-                <Text strong>Left Ventricle End Diastolic Diameter (mm)</Text>
-              }
-              rules={[
-                { required: true, message: "Required Field" },
-                {
-                  validator: (_, value) =>
-                    value >= 18 && value <= 88
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error("Value must be between 18 and 88 mm")
-                        ),
-                },
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Setto basale_mm"
+                label={<Text strong>Basal Septum (mm)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  {
+                    validator: (_, value) =>
+                      value >= 0 && value <= 24.4
+                        ? Promise.resolve()
+                        : Promise.reject(
+                            new Error("Value must be between 0 and 24.4 mm")
+                          ),
+                  },
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Altezza_cm"
-              label={<Text strong>Height (cm)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                optionalRangeRule(126, 217, " cm"),
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Distanza SIV-Coapt_mm"
+                label={<Text strong>C-Sept Distance (mm)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  {
+                    validator: (_, value) =>
+                      value >= 6 && value <= 51.5
+                        ? Promise.resolve()
+                        : Promise.reject(
+                            new Error("Value must be between 6 and 51.5 mm")
+                          ),
+                  },
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Peso_Kg"
-              label={<Text strong>Weight (kg)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                optionalRangeRule(12, 164, " kg"),
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Lunghezza A2_mm"
+                label={<Text strong>Anterior Leaflet Length (mm)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  {
+                    validator: (_, value) =>
+                      value >= 3.5 && value <= 49
+                        ? Promise.resolve()
+                        : Promise.reject(
+                            new Error("Value must be between 3.5 and 49 mm")
+                          ),
+                  },
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="BSA"
-              label={<Text strong>Body Surface Area (m2)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                optionalRangeRule(0.85, 2.85, " m2"),
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="0.01"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Lunghezza P2_mm"
+                label={<Text strong>Posterior Leaflet Length (mm)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  {
+                    validator: (_, value) =>
+                      value >= 0 && value <= 35
+                        ? Promise.resolve()
+                        : Promise.reject(
+                            new Error("Value must be between 0 and 35 mm")
+                          ),
+                  },
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="BMI"
-              label={<Text strong>BMI (kg/m2)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                optionalRangeRule(10, 61, " kg/m2"),
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="0.1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Rapporto LAM/LPM"
+                label={<Text strong>Leaflet Ratio</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  optionalRangeRule(0, 3.75),
+                ]}
+              >
+                <Input
+                  type="number"
+                  size="large"
+                  step="0.01"
+                  placeholder="Computed automatically or insert value"
+                />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Età"
-              label={<Text strong>Age (years)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                optionalRangeRule(0, 120),
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Angolo M-A_gradi"
+                label={<Text strong>M-A Angle (°)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  {
+                    validator: (_, value) => {
+                      const num = Number(value);
+                      if (isNaN(num) || num < 65 || num > 170) {
+                        return Promise.reject("Value outside range (65-170°)");
+                      }
+                      return Promise.resolve();
+                    },
+                  },
+                ]}
+              >
+                <Input
+                  type="number"
+                  size="large"
+                  step="1"
+                  placeholder="Insert Value"
+                  addonAfter="°"
+                />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Pre_LVESV"
-              label={<Text strong>Pre LVESV (ml)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                optionalRangeRule(0, 160, " ml"),
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Eziologia_MIX_FED"
+                label={<Text strong>Etiology</Text>}
+                rules={[{ required: true, message: "Required Field" }]}
+              >
+                <Select size="large" placeholder="Select Etiology">
+                  <Select.Option value="Myxomatous Disease">
+                    Myxomatous Disease
+                  </Select.Option>
+                  <Select.Option value="Fibroelastic Deficiency">
+                    Fibroelastic Deficiency
+                  </Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Mitrale_AP_mm"
-              label={<Text strong>Mitral AP Diameter (mm)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                optionalRangeRule(12, 71, " mm"),
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Prolapse"
+                label={<Text strong>Type of Lesion</Text>}
+                rules={[{ required: true, message: "Required Field" }]}
+              >
+                <Select size="large" placeholder="Select Lesion Type">
+                  <Select.Option value="Prolapse">Prolapse</Select.Option>
+                  <Select.Option value="Flail">Flail</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="mitrale_IC"
-              label={<Text strong>Intercommissural Distance (mm)</Text>}
-              rules={[
-                { required: true, message: "Required Field" },
-                optionalRangeRule(17, 83, " mm"),
-              ]}
-            >
-              <Input
-                type="number"
-                size="large"
-                step="1"
-                placeholder="Insert Value"
-              />
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Leaflet_involved"
+                label={<Text strong>Leaflet Involved</Text>}
+                rules={[{ required: true, message: "Required Field" }]}
+              >
+                <Select size="large" placeholder="Select Leaflet">
+                  <Select.Option value="Posterior">Posterior</Select.Option>
+                  <Select.Option value="Anterior">Anterior</Select.Option>
+                  <Select.Option value="Bileaflet">Bileaflet</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Eziologia_MIX_FED"
-              label={<Text strong>Etiology</Text>}
-              rules={[{ required: true, message: "Required Field" }]}
-            >
-              <Select size="large" placeholder="Select Etiology">
-                <Select.Option value="Myxomatous Disease">
-                  Myxomatous Disease
-                </Select.Option>
-                <Select.Option value="Fibroelastic Deficiency">
-                  Fibroelastic Deficiency
-                </Select.Option>
-              </Select>
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="scallop_involved"
+                label={<Text strong>Scallop Involved</Text>}
+                rules={[
+                  {
+                    validator: (_, value) =>
+                      value && value.length > 0
+                        ? Promise.resolve()
+                        : Promise.reject(new Error("Pick at least one Scallop")),
+                  },
+                ]}
+              >
+                <Checkbox.Group className="checkbox-field checkbox-field--grid">
+                  {["A1", "A2", "A3", "P1", "P2", "P3"].map((label) => (
+                    <Checkbox key={label} value={label}>
+                      {label}
+                    </Checkbox>
+                  ))}
+                </Checkbox.Group>
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Prolapse"
-              label={<Text strong>Type of Lesion</Text>}
-              rules={[{ required: true, message: "Required Field" }]}
-            >
-              <Select size="large" placeholder="Select Lesion Type">
-                <Select.Option value="Prolapse">Prolapse</Select.Option>
-                <Select.Option value="Flail">Flail</Select.Option>
-              </Select>
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Any cleft"
+                label={<Text strong>Any Cleft</Text>}
+                rules={[yesNoRequiredRule]}
+              >
+                <Select size="large" placeholder="Select Yes/No">
+                  <Select.Option value={true}>YES</Select.Option>
+                  <Select.Option value={false}>NO</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Leaflet_involved"
-              label={<Text strong>Leaflet Involved</Text>}
-              rules={[{ required: true, message: "Required Field" }]}
-            >
-              <Select size="large" placeholder="Select Leaflet">
-                <Select.Option value="Posterior">Posterior</Select.Option>
-                <Select.Option value="Anterior">Anterior</Select.Option>
-                <Select.Option value="Bileaflet">Bileaflet</Select.Option>
-              </Select>
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Any calcification leaflet"
+                label={<Text strong>Any Leaflet Calcification</Text>}
+                rules={[yesNoRequiredRule]}
+              >
+                <Select size="large" placeholder="Select Yes/No">
+                  <Select.Option value={true}>YES</Select.Option>
+                  <Select.Option value={false}>NO</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="scallop_involved"
-              label={<Text strong>Scallop Involved</Text>}
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value && value.length > 0
-                      ? Promise.resolve()
-                      : Promise.reject(new Error("Pick at least one Scallop")),
-                },
-              ]}
-            >
-              <Checkbox.Group className="checkbox-field checkbox-field--grid">
-                {["A1", "A2", "A3", "P1", "P2", "P3"].map((label) => (
-                  <Checkbox key={label} value={label}>
-                    {label}
-                  </Checkbox>
-                ))}
-              </Checkbox.Group>
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Any calcification anello"
+                label={<Text strong>Any Annular Calcification</Text>}
+                rules={[yesNoRequiredRule]}
+              >
+                <Select size="large" placeholder="Select Yes/No">
+                  <Select.Option value={true}>YES</Select.Option>
+                  <Select.Option value={false}>NO</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+        </section>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Sesso"
-              label={<Text strong>Sex</Text>}
-              rules={[{ required: true, message: "Required Field" }]}
-            >
-              <Select size="large" placeholder="Select Sex">
-                <Select.Option value="M">M</Select.Option>
-                <Select.Option value="F">F</Select.Option>
-              </Select>
-            </Form.Item>
-          </Col>
+        <section className="predictor-section">
+          <Title level={3} className="predictor-section__title">
+            Further parameters to assess predicted ring size
+          </Title>
+          <Row gutter={[16, 4]}>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Età"
+                label={<Text strong>Age (years)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  optionalRangeRule(0, 120),
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Any cleft"
-              label={<Text strong>Any Cleft</Text>}
-              rules={[yesNoRequiredRule]}
-            >
-              <Select size="large" placeholder="Select Yes/No">
-                <Select.Option value={true}>YES</Select.Option>
-                <Select.Option value={false}>NO</Select.Option>
-              </Select>
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Sesso"
+                label={<Text strong>Sex</Text>}
+                rules={[{ required: true, message: "Required Field" }]}
+              >
+                <Select size="large" placeholder="Select Sex">
+                  <Select.Option value="M">M</Select.Option>
+                  <Select.Option value="F">F</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Any calcification leaflet"
-              label={<Text strong>Any Leaflet Calcification</Text>}
-              rules={[yesNoRequiredRule]}
-            >
-              <Select size="large" placeholder="Select Yes/No">
-                <Select.Option value={true}>YES</Select.Option>
-                <Select.Option value={false}>NO</Select.Option>
-              </Select>
-            </Form.Item>
-          </Col>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Altezza_cm"
+                label={<Text strong>Height (cm)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  optionalRangeRule(126, 217, " cm"),
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} sm={12} lg={8} xl={6}>
-            <Form.Item
-              name="Any calcification anello"
-              label={<Text strong>Any Annular Calcification</Text>}
-              rules={[yesNoRequiredRule]}
-            >
-              <Select size="large" placeholder="Select Yes/No">
-                <Select.Option value={true}>YES</Select.Option>
-                <Select.Option value={false}>NO</Select.Option>
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Peso_Kg"
+                label={<Text strong>Weight (kg)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  optionalRangeRule(12, 164, " kg"),
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="BSA"
+                label={<Text strong>BSA (m2)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  optionalRangeRule(0.85, 2.85, " m2"),
+                ]}
+              >
+                <Input type="number" size="large" step="0.01" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="BMI"
+                label={<Text strong>BMI (kg/m2)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  optionalRangeRule(10, 61, " kg/m2"),
+                ]}
+              >
+                <Input type="number" size="large" step="0.1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Pre_LVESV"
+                label={<Text strong>Pre LVESV (ml)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  optionalRangeRule(0, 160, " ml"),
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="Mitrale_AP_mm"
+                label={<Text strong>Mitral AP distance (mm)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  optionalRangeRule(12, 71, " mm"),
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12} lg={8} xl={6}>
+              <Form.Item
+                name="mitrale_IC"
+                label={<Text strong>Mitral IC distance (mm)</Text>}
+                rules={[
+                  { required: true, message: "Required Field" },
+                  optionalRangeRule(17, 83, " mm"),
+                ]}
+              >
+                <Input type="number" size="large" step="1" placeholder="Insert Value" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </section>
 
         <Form.Item className="predictor-actions">
           <Button
