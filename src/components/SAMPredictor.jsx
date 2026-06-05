@@ -103,16 +103,43 @@ const formatRingValue = (value) => {
     : numericValue.toFixed(1);
 };
 
+const formatPercentValue = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return "Not available";
+  }
+
+  const numericValue = Number(value);
+  if (Number.isNaN(numericValue)) {
+    return String(value);
+  }
+
+  const percentValue = numericValue <= 1 ? numericValue * 100 : numericValue;
+  return `${Math.round(percentValue)}%`;
+};
+
+const formatRingRange = (range) =>
+  Array.isArray(range)
+    ? `${range.map((value) => formatRingValue(value)).join("-")} mm`
+    : null;
+
 const buildRingPrediction = (data) => {
   const plausibleRange =
     data.predicted_ring_plausible_range ?? data.ring?.plausible_range_mm;
+  const predictedMm = data.predicted_ring_mm ?? data.ring?.predicted_mm;
+  const recommendedSize =
+    data.recommended_ring_size ?? data.ring?.recommended_size;
+  const reliability =
+    data.ring_prob_within_2mm ?? data.ring?.prob_within_2mm;
 
-  if (!plausibleRange) {
+  if (!plausibleRange && !predictedMm && !recommendedSize && !reliability) {
     return null;
   }
 
   return {
     plausibleRange,
+    predictedMm,
+    recommendedSize,
+    reliability,
   };
 };
 
@@ -127,19 +154,19 @@ const SAMPredictor = () => {
     Number.isFinite(prediction) ? getRiskProfile(prediction, riskBand) : null;
 
   const handleValuesChange = (changedValues, allValues) => {
-    const a2 = Number(allValues.lunghezza_a2);
-    const p2 = Number(allValues.lunghezza_p2);
+    const a2 = Number(allValues["Lunghezza A2_mm"]);
+    const p2 = Number(allValues["Lunghezza P2_mm"]);
     const height = Number(allValues.Altezza_cm);
     const weight = Number(allValues.Peso_Kg);
 
     if (
-      Object.prototype.hasOwnProperty.call(changedValues, "lunghezza_a2") ||
-      Object.prototype.hasOwnProperty.call(changedValues, "lunghezza_p2")
+      Object.prototype.hasOwnProperty.call(changedValues, "Lunghezza A2_mm") ||
+      Object.prototype.hasOwnProperty.call(changedValues, "Lunghezza P2_mm")
     ) {
       if (a2 > 0 && p2 > 0) {
-        form.setFieldValue("rapporto_lam_lpm", (a2 / p2).toFixed(2));
+        form.setFieldValue("Rapporto LAM/LPM", (a2 / p2).toFixed(2));
       } else {
-        form.setFieldValue("rapporto_lam_lpm", undefined);
+        form.setFieldValue("Rapporto LAM/LPM", undefined);
       }
     }
 
@@ -169,12 +196,12 @@ const SAMPredictor = () => {
     setRingPrediction(null);
 
     try {
-      const a2 = Number(values.lunghezza_a2);
-      const p2 = Number(values.lunghezza_p2);
+      const a2 = Number(values["Lunghezza A2_mm"]);
+      const p2 = Number(values["Lunghezza P2_mm"]);
       const computedRatio = a2 > 0 && p2 > 0 ? (a2 / p2).toFixed(2) : undefined;
       const payload = {
         ...values,
-        rapporto_lam_lpm: values.rapporto_lam_lpm || computedRatio,
+        "Rapporto LAM/LPM": values["Rapporto LAM/LPM"] || computedRatio,
       };
 
       const response = await fetch(`${API_URL}/api/predict`, {
@@ -259,7 +286,7 @@ const SAMPredictor = () => {
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="lunghezza_a2"
+              name="Lunghezza A2_mm"
               label={<Text strong>Anterior Leaflet Length (mm)</Text>}
               rules={[
                 { required: true, message: "Required Field" },
@@ -284,7 +311,7 @@ const SAMPredictor = () => {
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="lunghezza_p2"
+              name="Lunghezza P2_mm"
               label={<Text strong>Posterior Leaflet Length (mm)</Text>}
               rules={[
                 { required: true, message: "Required Field" },
@@ -309,7 +336,7 @@ const SAMPredictor = () => {
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="rapporto_lam_lpm"
+              name="Rapporto LAM/LPM"
               label={<Text strong>Leaflet Ratio</Text>}
               rules={[
                 { required: true, message: "Required Field" },
@@ -327,7 +354,7 @@ const SAMPredictor = () => {
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="distanza_siv_coapt"
+              name="Distanza SIV-Coapt_mm"
               label={<Text strong>C-Sept Distance (mm)</Text>}
               rules={[
                 { required: true, message: "Required Field" },
@@ -351,7 +378,7 @@ const SAMPredictor = () => {
           </Col>
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="angolo_ma"
+              name="Angolo M-A_gradi"
               label={<Text strong>M-A Angle (°)</Text>}
               rules={[
                 { required: true, message: "Required Field" },
@@ -378,7 +405,7 @@ const SAMPredictor = () => {
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="setto_basale"
+              name="Setto basale_mm"
               label={<Text strong>Basal Septum (mm)</Text>}
               rules={[
                 { required: true, message: "Required Field" },
@@ -403,7 +430,7 @@ const SAMPredictor = () => {
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="lv_edd"
+              name="LV EDD"
               label={
                 <Text strong>Left Ventricle End Diastolic Diameter (mm)</Text>
               }
@@ -502,7 +529,7 @@ const SAMPredictor = () => {
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="Eta"
+              name="Età"
               label={<Text strong>Age (years)</Text>}
               rules={[
                 { required: true, message: "Required Field" },
@@ -654,7 +681,7 @@ const SAMPredictor = () => {
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="Any_cleft"
+              name="Any cleft"
               label={<Text strong>Any Cleft</Text>}
               rules={[yesNoRequiredRule]}
             >
@@ -667,7 +694,7 @@ const SAMPredictor = () => {
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="Any_leaflet_calcification"
+              name="Any calcification leaflet"
               label={<Text strong>Any Leaflet Calcification</Text>}
               rules={[yesNoRequiredRule]}
             >
@@ -680,7 +707,7 @@ const SAMPredictor = () => {
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
-              name="Any_annular_calcification"
+              name="Any calcification anello"
               label={<Text strong>Any Annular Calcification</Text>}
               rules={[yesNoRequiredRule]}
             >
@@ -766,31 +793,39 @@ const SAMPredictor = () => {
               <div className="ring-beta__content">
                 <Text className="ring-beta__eyebrow">Ring sizing beta</Text>
                 <Title level={4} className="ring-beta__title">
-                  Suggested ring range:{" "}
-                  {Array.isArray(ringPrediction.plausibleRange)
-                    ? `${ringPrediction.plausibleRange
-                        .map((value) => formatRingValue(value))
-                        .join("-")} mm`
+                  Predicted ring size for this anatomy:{" "}
+                  {ringPrediction.recommendedSize !== undefined &&
+                  ringPrediction.recommendedSize !== null
+                    ? `${formatRingValue(ringPrediction.recommendedSize)} mm`
                     : "Not available"}
                 </Title>
+                <Text>Model trained on OSR case series</Text>
                 <Text className="ring-beta__copy">
-                  This ring-size suggestion is an experimental beta feature with
-                  limited confidence. Use it only as a secondary reference and
-                  do not rely on it for clinical or operative decisions without
-                  an independent surgical assessment.
+                  With a high SAM risk, sizes at the lower end of this range
+                   may increase SAM likelihood. Consider upsizing to mitigate risk.
                 </Text>
               </div>
 
               <div className="ring-beta__metrics">
-                {Array.isArray(ringPrediction.plausibleRange) && (
-                  <div>
-                    <span>Plausible range</span>
-                    <strong>
-                      {ringPrediction.plausibleRange
-                        .map((value) => formatRingValue(value))
-                        .join("-")}{" "}
-                      mm
-                    </strong>
+                {(Array.isArray(ringPrediction.plausibleRange) ||
+                  ringPrediction.reliability !== undefined) && (
+                  <div className="ring-beta__metric ring-beta__metric--combined">
+                    <div className="ring-beta__range-stack">
+                      <span>Predicted size range</span>
+                      <strong>
+                        {formatRingRange(ringPrediction.plausibleRange) ??
+                          "Not available"}
+                      </strong>
+                    </div>
+                    {ringPrediction.reliability !== undefined &&
+                      ringPrediction.reliability !== null && (
+                        <small>
+                          Model Accuracy within this range:{" "}
+                          <strong>
+                            {formatPercentValue(ringPrediction.reliability)}
+                          </strong>
+                        </small>
+                      )}
                   </div>
                 )}
               </div>
