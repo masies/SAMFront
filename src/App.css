@@ -15,7 +15,7 @@
 }
 
 .app-header__inner {
-  width: min(1180px, calc(100% - 48px));
+  width: min(1380px, calc(100% - 48px));
   min-height: 58px;
   display: flex;
   align-items: center;
@@ -45,7 +45,7 @@
 }
 
 .app-content {
-  width: min(1180px, calc(100% - 48px));
+  width: min(1380px, calc(100% - 48px));
   flex: 1;
   margin: 0 auto;
   padding: 16px 0 18px;
@@ -84,7 +84,7 @@
 }
 
 .app-footer {
-  width: min(1180px, calc(100% - 48px));
+  width: min(1380px, calc(100% - 48px));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -113,6 +113,7 @@
 }
 
 @media (max-width: 760px) {
+
   .app-header__inner,
   .app-content,
   .app-footer {
