@@ -112,6 +112,32 @@
   background-color: #335c67;
 }
 
+.predictor-form .checkbox-field {
+  border: 1px solid #d7dde6;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.predictor-form .checkbox-field:hover {
+  border-color: #8aa4b1;
+}
+
+.predictor-form .checkbox-field--grid.ant-checkbox-group {
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px 8px;
+  align-items: center;
+  padding: 6px 10px;
+}
+
+.predictor-form .checkbox-field .ant-checkbox-wrapper {
+  min-height: 24px;
+  margin-inline-start: 0;
+  color: #243042;
+  font-size: 13px;
+}
+
 .predictor-actions.ant-form-item {
   margin: 12px 0 0;
   text-align: right;
@@ -216,22 +242,32 @@
 }
 
 .risk-scale__item {
-  min-height: 34px;
+  min-height: 48px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border: 1px solid #e6e8eb;
   border-radius: 6px;
   color: #667085;
-  font-size: 13px;
-  font-weight: 800;
-  text-transform: capitalize;
+  line-height: 1.2;
 }
 
 .risk-scale__item--active {
   border-color: var(--risk-color);
   background: var(--risk-bg);
   color: var(--risk-color);
+}
+
+.risk-scale__item span {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.risk-scale__item strong {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .risk-result__message.ant-typography {
@@ -242,20 +278,62 @@
   line-height: 1.5;
 }
 
-.risk-result__thresholds {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 16px;
+.ring-beta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 260px);
+  gap: 18px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #e6e8eb;
 }
 
-.risk-result__thresholds span {
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #f2f4f7;
-  color: #475467;
+.ring-beta__eyebrow.ant-typography {
+  display: block;
+  color: #6941c6;
   font-size: 12px;
   font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ring-beta__title.ant-typography {
+  margin: 4px 0 6px;
+  color: #101828;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.ring-beta__copy.ant-typography {
+  display: block;
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ring-beta__metrics {
+  display: grid;
+  gap: 8px;
+}
+
+.ring-beta__metrics div {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid #e4d8ff;
+  border-radius: 7px;
+  background: #f9f5ff;
+}
+
+.ring-beta__metrics span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ring-beta__metrics strong {
+  color: #101828;
+  font-size: 20px;
+  line-height: 1.2;
 }
 
 @media (max-width: 900px) {
@@ -318,5 +396,9 @@
 
   .risk-scale__item {
     font-size: 12px;
+  }
+
+  .ring-beta {
+    grid-template-columns: 1fr;
   }
 }

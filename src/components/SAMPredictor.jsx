@@ -19,8 +19,24 @@ const { Title, Text } = Typography;
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-const getRiskProfile = (value) => {
-  if (value >= 50) {
+const getRiskProfile = (value, band) => {
+  const normalizedBand = typeof band === "string" ? band.toLowerCase() : "";
+  const level =
+    normalizedBand.includes("alto") || normalizedBand.includes("high")
+      ? "high"
+      : normalizedBand.includes("intermedio") ||
+          normalizedBand.includes("intermediate") ||
+          normalizedBand.includes("medium")
+        ? "medium"
+        : normalizedBand.includes("basso") || normalizedBand.includes("low")
+          ? "low"
+          : value >= 32
+            ? "high"
+            : value >= 11
+              ? "medium"
+              : "low";
+
+  if (level === "high") {
     return {
       level: "high",
       title: "High SAM risk",
@@ -30,10 +46,10 @@ const getRiskProfile = (value) => {
     };
   }
 
-  if (value >= 30) {
+  if (level === "medium") {
     return {
       level: "medium",
-      title: "Medium SAM risk",
+      title: "Intermediate SAM risk",
       color: "#b7791f",
       message:
         "Review measurements and surgical plan with attention to modifiable anatomical factors.",
@@ -44,26 +60,104 @@ const getRiskProfile = (value) => {
     level: "low",
     title: "Low SAM risk",
     color: "#067647",
-    message:
-      "Risk estimate is limited based on the submitted measurements.",
+    message: "Risk estimate is limited based on the submitted measurements.",
+  };
+};
+
+const optionalRangeRule = (min, max, unit = "") => ({
+  validator: (_, value) => {
+    if (value === undefined || value === null || value === "") {
+      return Promise.resolve();
+    }
+
+    const numericValue = Number(value);
+    if (Number.isNaN(numericValue) || numericValue < min || numericValue > max) {
+      return Promise.reject(
+        new Error(`Value must be between ${min} and ${max}${unit}`)
+      );
+    }
+
+    return Promise.resolve();
+  },
+});
+
+const yesNoRequiredRule = {
+  validator: (_, value) =>
+    value === true || value === false
+      ? Promise.resolve()
+      : Promise.reject(new Error("Required Field")),
+};
+
+const formatRingValue = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return "Not available";
+  }
+
+  const numericValue = Number(value);
+  if (Number.isNaN(numericValue)) {
+    return String(value);
+  }
+
+  return Number.isInteger(numericValue)
+    ? numericValue.toString()
+    : numericValue.toFixed(1);
+};
+
+const buildRingPrediction = (data) => {
+  const plausibleRange =
+    data.predicted_ring_plausible_range ?? data.ring?.plausible_range_mm;
+
+  if (!plausibleRange) {
+    return null;
+  }
+
+  return {
+    plausibleRange,
   };
 };
 
 const SAMPredictor = () => {
   const [prediction, setPrediction] = useState(null);
+  const [riskBand, setRiskBand] = useState(null);
+  const [ringPrediction, setRingPrediction] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
-  const riskProfile = prediction !== null ? getRiskProfile(prediction) : null;
+  const riskProfile =
+    Number.isFinite(prediction) ? getRiskProfile(prediction, riskBand) : null;
 
-  const handleValuesChange = (_, allValues) => {
+  const handleValuesChange = (changedValues, allValues) => {
     const a2 = Number(allValues.lunghezza_a2);
     const p2 = Number(allValues.lunghezza_p2);
+    const height = Number(allValues.Altezza_cm);
+    const weight = Number(allValues.Peso_Kg);
 
-    if (a2 > 0 && p2 > 0) {
-      form.setFieldValue("rapporto_lam_lpm", (a2 / p2).toFixed(2));
-    } else {
-      form.setFieldValue("rapporto_lam_lpm", undefined);
+    if (
+      Object.prototype.hasOwnProperty.call(changedValues, "lunghezza_a2") ||
+      Object.prototype.hasOwnProperty.call(changedValues, "lunghezza_p2")
+    ) {
+      if (a2 > 0 && p2 > 0) {
+        form.setFieldValue("rapporto_lam_lpm", (a2 / p2).toFixed(2));
+      } else {
+        form.setFieldValue("rapporto_lam_lpm", undefined);
+      }
+    }
+
+    if (
+      (Object.prototype.hasOwnProperty.call(changedValues, "Altezza_cm") ||
+        Object.prototype.hasOwnProperty.call(changedValues, "Peso_Kg")) &&
+      height > 0 &&
+      weight > 0
+    ) {
+      form.setFieldsValue({
+        BMI: (weight / (height / 100) ** 2).toFixed(1),
+        BSA: Math.sqrt((height * weight) / 3600).toFixed(2),
+      });
+    } else if (
+      Object.prototype.hasOwnProperty.call(changedValues, "Altezza_cm") ||
+      Object.prototype.hasOwnProperty.call(changedValues, "Peso_Kg")
+    ) {
+      form.setFieldsValue({ BMI: undefined, BSA: undefined });
     }
   };
 
@@ -71,13 +165,16 @@ const SAMPredictor = () => {
     setLoading(true);
     setError(null);
     setPrediction(null);
+    setRiskBand(null);
+    setRingPrediction(null);
 
     try {
+      const a2 = Number(values.lunghezza_a2);
+      const p2 = Number(values.lunghezza_p2);
+      const computedRatio = a2 > 0 && p2 > 0 ? (a2 / p2).toFixed(2) : undefined;
       const payload = {
         ...values,
-        rapporto_lam_lpm:
-          values.rapporto_lam_lpm ||
-          (Number(values.lunghezza_a2) / Number(values.lunghezza_p2)).toFixed(2),
+        rapporto_lam_lpm: values.rapporto_lam_lpm || computedRatio,
       };
 
       const response = await fetch(`${API_URL}/api/predict`, {
@@ -95,7 +192,14 @@ const SAMPredictor = () => {
         );
       }
 
-      setPrediction(data.prediction);
+      const samProbability = Number(data.sam_probability ?? data.prediction);
+      if (!Number.isFinite(samProbability)) {
+        throw new Error("Prediction response missing sam_probability");
+      }
+
+      setPrediction(samProbability);
+      setRiskBand(data.risk_band);
+      setRingPrediction(buildRingPrediction(data));
     } catch (error) {
       console.error("Error:", error);
       setError(error.message || "Prediction failed");
@@ -127,31 +231,31 @@ const SAMPredictor = () => {
         requiredMark={false}
         className="predictor-form"
       >
-          <Row gutter={[16, 4]}>
-            <Col xs={24} sm={12} lg={8} xl={6}>
-              <Form.Item
-                name="Pre_EF"
-                label={<Text strong>Left Ventricle Ejection Fraction (%)</Text>}
-                rules={[
-                  { required: true, message: "Required Field" },
-                  {
-                    validator: (_, value) =>
-                      value >= 40 && value <= 70
-                        ? Promise.resolve()
-                        : Promise.reject(
-                            new Error("Value must be between 40 and 70%")
-                          ),
-                  },
-                ]}
-              >
-                <Input
-                  type="number"
-                  size="large"
-                  step="1"
-                  placeholder="Insert Value"
-                />
-              </Form.Item>
-            </Col>
+        <Row gutter={[16, 4]}>
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="Pre_EF"
+              label={<Text strong>Left Ventricle Ejection Fraction (%)</Text>}
+              rules={[
+                { required: true, message: "Required Field" },
+                {
+                  validator: (_, value) =>
+                    value >= 35 && value <= 88
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Value must be between 35 and 88%")
+                        ),
+                },
+              ]}
+            >
+              <Input
+                type="number"
+                size="large"
+                step="1"
+                placeholder="Insert Value"
+              />
+            </Form.Item>
+          </Col>
 
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
@@ -161,10 +265,10 @@ const SAMPredictor = () => {
                 { required: true, message: "Required Field" },
                 {
                   validator: (_, value) =>
-                    value >= 14 && value <= 40
+                    value >= 3.5 && value <= 49
                       ? Promise.resolve()
                       : Promise.reject(
-                          new Error("Value must be between 14 and 40 mm")
+                          new Error("Value must be between 3.5 and 49 mm")
                         ),
                 },
               ]}
@@ -186,10 +290,10 @@ const SAMPredictor = () => {
                 { required: true, message: "Required Field" },
                 {
                   validator: (_, value) =>
-                    value >= 8 && value <= 35
+                    value >= 0 && value <= 35
                       ? Promise.resolve()
                       : Promise.reject(
-                          new Error("Value must be between 8 and 35 mm")
+                          new Error("Value must be between 0 and 35 mm")
                         ),
                 },
               ]}
@@ -207,13 +311,16 @@ const SAMPredictor = () => {
             <Form.Item
               name="rapporto_lam_lpm"
               label={<Text strong>Leaflet Ratio</Text>}
+              rules={[
+                { required: true, message: "Required Field" },
+                optionalRangeRule(0, 3.75),
+              ]}
             >
               <Input
                 type="number"
                 size="large"
                 step="0.01"
-                disabled
-                placeholder="Computed automatically"
+                placeholder="Computed automatically or insert value"
               />
             </Form.Item>
           </Col>
@@ -226,10 +333,10 @@ const SAMPredictor = () => {
                 { required: true, message: "Required Field" },
                 {
                   validator: (_, value) =>
-                    value >= 15 && value <= 50
+                    value >= 6 && value <= 51.5
                       ? Promise.resolve()
                       : Promise.reject(
-                          new Error("Value must be between 15 and 50 mm")
+                          new Error("Value must be between 6 and 51.5 mm")
                         ),
                 },
               ]}
@@ -251,8 +358,8 @@ const SAMPredictor = () => {
                 {
                   validator: (_, value) => {
                     const num = Number(value);
-                    if (isNaN(num) || num < 85 || num > 155) {
-                      return Promise.reject("Value outside range (85–155°)");
+                    if (isNaN(num) || num < 65 || num > 170) {
+                      return Promise.reject("Value outside range (65-170°)");
                     }
                     return Promise.resolve();
                   },
@@ -277,10 +384,10 @@ const SAMPredictor = () => {
                 { required: true, message: "Required Field" },
                 {
                   validator: (_, value) =>
-                    value >= 8 && value <= 20
+                    value >= 0 && value <= 24.4
                       ? Promise.resolve()
                       : Promise.reject(
-                          new Error("Value must be between 8 and 20 mm")
+                          new Error("Value must be between 0 and 24.4 mm")
                         ),
                 },
               ]}
@@ -304,12 +411,156 @@ const SAMPredictor = () => {
                 { required: true, message: "Required Field" },
                 {
                   validator: (_, value) =>
-                    value >= 35 && value <= 75
+                    value >= 18 && value <= 88
                       ? Promise.resolve()
                       : Promise.reject(
-                          new Error("Value must be between 35 and 75 mm")
+                          new Error("Value must be between 18 and 88 mm")
                         ),
                 },
+              ]}
+            >
+              <Input
+                type="number"
+                size="large"
+                step="1"
+                placeholder="Insert Value"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="Altezza_cm"
+              label={<Text strong>Height (cm)</Text>}
+              rules={[
+                { required: true, message: "Required Field" },
+                optionalRangeRule(126, 217, " cm"),
+              ]}
+            >
+              <Input
+                type="number"
+                size="large"
+                step="1"
+                placeholder="Insert Value"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="Peso_Kg"
+              label={<Text strong>Weight (kg)</Text>}
+              rules={[
+                { required: true, message: "Required Field" },
+                optionalRangeRule(12, 164, " kg"),
+              ]}
+            >
+              <Input
+                type="number"
+                size="large"
+                step="1"
+                placeholder="Insert Value"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="BSA"
+              label={<Text strong>Body Surface Area (m2)</Text>}
+              rules={[
+                { required: true, message: "Required Field" },
+                optionalRangeRule(0.85, 2.85, " m2"),
+              ]}
+            >
+              <Input
+                type="number"
+                size="large"
+                step="0.01"
+                placeholder="Insert Value"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="BMI"
+              label={<Text strong>BMI (kg/m2)</Text>}
+              rules={[
+                { required: true, message: "Required Field" },
+                optionalRangeRule(10, 61, " kg/m2"),
+              ]}
+            >
+              <Input
+                type="number"
+                size="large"
+                step="0.1"
+                placeholder="Insert Value"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="Eta"
+              label={<Text strong>Age (years)</Text>}
+              rules={[
+                { required: true, message: "Required Field" },
+                optionalRangeRule(0, 120),
+              ]}
+            >
+              <Input
+                type="number"
+                size="large"
+                step="1"
+                placeholder="Insert Value"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="Pre_LVESV"
+              label={<Text strong>Pre LVESV (ml)</Text>}
+              rules={[
+                { required: true, message: "Required Field" },
+                optionalRangeRule(0, 160, " ml"),
+              ]}
+            >
+              <Input
+                type="number"
+                size="large"
+                step="1"
+                placeholder="Insert Value"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="Mitrale_AP_mm"
+              label={<Text strong>Mitral AP Diameter (mm)</Text>}
+              rules={[
+                { required: true, message: "Required Field" },
+                optionalRangeRule(12, 71, " mm"),
+              ]}
+            >
+              <Input
+                type="number"
+                size="large"
+                step="1"
+                placeholder="Insert Value"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="mitrale_IC"
+              label={<Text strong>Intercommissural Distance (mm)</Text>}
+              rules={[
+                { required: true, message: "Required Field" },
+                optionalRangeRule(17, 83, " mm"),
               ]}
             >
               <Input
@@ -368,7 +619,7 @@ const SAMPredictor = () => {
           <Col xs={24} sm={12} lg={8} xl={6}>
             <Form.Item
               name="scallop_involved"
-              label="Scallop Involved"
+              label={<Text strong>Scallop Involved</Text>}
               rules={[
                 {
                   validator: (_, value) =>
@@ -378,48 +629,80 @@ const SAMPredictor = () => {
                 },
               ]}
             >
-              <Checkbox.Group>
-                <Row gutter={[8, 8]}>
-                  {["A1", "A2", "A3", "P1", "P2", "P3"].map((label) => (
-                    <Col key={label} span={8}>
-                      <Checkbox value={label}>{label}</Checkbox>
-                    </Col>
-                  ))}
-                </Row>
+              <Checkbox.Group className="checkbox-field checkbox-field--grid">
+                {["A1", "A2", "A3", "P1", "P2", "P3"].map((label) => (
+                  <Checkbox key={label} value={label}>
+                    {label}
+                  </Checkbox>
+                ))}
               </Checkbox.Group>
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={8} lg={8} xl={6}>
-            <Form.Item name="Any_cleft" valuePropName="checked">
-              <Checkbox>Any Cleft</Checkbox>
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={8} lg={8} xl={6}>
-            <Form.Item name="Any_leaflet_calcification" valuePropName="checked">
-              <Checkbox>Any Leaflet Calcification</Checkbox>
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={8} lg={8} xl={6}>
-            <Form.Item name="Any_annular_calcification" valuePropName="checked">
-              <Checkbox>Any Annular Calcification</Checkbox>
-            </Form.Item>
-          </Col>
-          </Row>
-
-          <Form.Item className="predictor-actions">
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              size="large"
-              className="predictor-submit"
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="Sesso"
+              label={<Text strong>Sex</Text>}
+              rules={[{ required: true, message: "Required Field" }]}
             >
-              Predict SAM Risk
-            </Button>
-          </Form.Item>
+              <Select size="large" placeholder="Select Sex">
+                <Select.Option value="M">M</Select.Option>
+                <Select.Option value="F">F</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="Any_cleft"
+              label={<Text strong>Any Cleft</Text>}
+              rules={[yesNoRequiredRule]}
+            >
+              <Select size="large" placeholder="Select Yes/No">
+                <Select.Option value={true}>YES</Select.Option>
+                <Select.Option value={false}>NO</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="Any_leaflet_calcification"
+              label={<Text strong>Any Leaflet Calcification</Text>}
+              rules={[yesNoRequiredRule]}
+            >
+              <Select size="large" placeholder="Select Yes/No">
+                <Select.Option value={true}>YES</Select.Option>
+                <Select.Option value={false}>NO</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item
+              name="Any_annular_calcification"
+              label={<Text strong>Any Annular Calcification</Text>}
+              rules={[yesNoRequiredRule]}
+            >
+              <Select size="large" placeholder="Select Yes/No">
+                <Select.Option value={true}>YES</Select.Option>
+                <Select.Option value={false}>NO</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item className="predictor-actions">
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            size="large"
+            className="predictor-submit"
+          >
+            Predict SAM Risk
+          </Button>
+        </Form.Item>
       </Form>
 
       {error && (
@@ -459,25 +742,60 @@ const SAMPredictor = () => {
           />
 
           <div className="risk-scale" aria-label="Risk scale">
-            {["low", "medium", "high"].map((level) => (
+            {[
+              { level: "low", label: "Low", value: "<11%" },
+              { level: "medium", label: "Medium", value: "11-31%" },
+              { level: "high", label: "High", value: ">=32%" },
+            ].map(({ level, label, value }) => (
               <div
                 key={level}
                 className={`risk-scale__item ${
                   riskProfile.level === level ? "risk-scale__item--active" : ""
                 }`}
               >
-                {level}
+                <span>{label}</span>
+                <strong>{value}</strong>
               </div>
             ))}
           </div>
 
           <Text className="risk-result__message">{riskProfile.message}</Text>
 
-          <div className="risk-result__thresholds">
-            <span>Low &lt;30%</span>
-            <span>Medium 30-49%</span>
-            <span>High &gt;=50%</span>
-          </div>
+          {ringPrediction && (
+            <div className="ring-beta">
+              <div className="ring-beta__content">
+                <Text className="ring-beta__eyebrow">Ring sizing beta</Text>
+                <Title level={4} className="ring-beta__title">
+                  Suggested ring range:{" "}
+                  {Array.isArray(ringPrediction.plausibleRange)
+                    ? `${ringPrediction.plausibleRange
+                        .map((value) => formatRingValue(value))
+                        .join("-")} mm`
+                    : "Not available"}
+                </Title>
+                <Text className="ring-beta__copy">
+                  This ring-size suggestion is an experimental beta feature with
+                  limited confidence. Use it only as a secondary reference and
+                  do not rely on it for clinical or operative decisions without
+                  an independent surgical assessment.
+                </Text>
+              </div>
+
+              <div className="ring-beta__metrics">
+                {Array.isArray(ringPrediction.plausibleRange) && (
+                  <div>
+                    <span>Plausible range</span>
+                    <strong>
+                      {ringPrediction.plausibleRange
+                        .map((value) => formatRingValue(value))
+                        .join("-")}{" "}
+                      mm
+                    </strong>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </section>
       )}
     </Card>
