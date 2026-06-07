@@ -160,6 +160,20 @@
 
 .predictor-actions.ant-form-item {
   margin: 12px 0 0;
+}
+
+.predictor-actions__content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.predictor-loading-note.ant-typography {
+  color: #475467;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
   text-align: right;
 }
 
@@ -410,6 +424,16 @@
   }
 
   .predictor-actions.ant-form-item {
+    text-align: center;
+  }
+
+  .predictor-actions__content {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .predictor-loading-note.ant-typography {
     text-align: center;
   }
 

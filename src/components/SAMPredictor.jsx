@@ -650,15 +650,22 @@ const SAMPredictor = () => {
         </section>
 
         <Form.Item className="predictor-actions">
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={loading}
-            size="large"
-            className="predictor-submit"
-          >
-            Predict SAM Risk
-          </Button>
+          <div className="predictor-actions__content">
+            {loading && (
+              <Text className="predictor-loading-note" role="status">
+                The prediction may take up to 1-2 minutes.
+              </Text>
+            )}
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              size="large"
+              className="predictor-submit"
+            >
+              Predict SAM Risk
+            </Button>
+          </div>
         </Form.Item>
       </Form>
 
