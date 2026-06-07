@@ -623,19 +623,6 @@ const SAMPredictor = () => {
 
             <Col xs={24} sm={12} lg={8} xl={6}>
               <Form.Item
-                name="Pre_LVESV"
-                label={<Text strong>Pre LVESV (ml)</Text>}
-                rules={[
-                  { required: true, message: "Required Field" },
-                  optionalRangeRule(0, 160, " ml"),
-                ]}
-              >
-                <Input type="number" size="large" step="1" placeholder="Insert Value" />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={12} lg={8} xl={6}>
-              <Form.Item
                 name="Mitrale_AP_mm"
                 label={<Text strong>Mitral AP distance (mm)</Text>}
                 rules={[
