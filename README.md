@@ -28,7 +28,7 @@ React + Vite frontend for the SAM risk and ring sizing predictor.
 
 | Payload key | Form label | Type / options |
 | --- | --- | --- |
-| `Eta` | Age (years) | Number, 0-120 |
+| `Età` | Age (years) | Number, 0-120 |
 | `Sesso` | Sex | `M`, `F` |
 | `Altezza_cm` | Height (cm) | Number, 126-217 |
 | `Peso_Kg` | Weight (kg) | Number, 12-164 |
